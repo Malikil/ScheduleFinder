@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { inspect } = require('util');
 
 // Make sure the data file exists
 const FILENAME = 'data.json';
@@ -267,6 +266,12 @@ function addStatus(name, status) {
  * @param {Date} date 
  */
 function getTimes(name, date) {
+    if (!data[name])
+        return {
+            lastUpdate: null,
+            future: null
+        };
+        
     if (!date)
         date = new Date();
     // Find the expected status for the next 6 hours
@@ -293,6 +298,14 @@ function removeName(name) {
     delete data[name];
 }
 
+function getAllNames() {
+    return Object.keys(data);
+}
+
+function getOnStates() {
+    return Object.keys(data).filter(key => data[key].status === 'on');
+}
+
 function commit() {
     fs.writeFile(FILENAME, JSON.stringify(data),
         err => { if (err) console.log(err); }
@@ -303,5 +316,7 @@ module.exports = {
     addStatus,
     getTimes,
     removeName,
+    getAllNames,
+    getOnStates,
     commit
 };
