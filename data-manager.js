@@ -2,7 +2,7 @@ const fs = require('fs');
 const { inspect } = require('util');
 
 // Make sure the data file exists
-const FILENAME = 'new-data.json';
+const FILENAME = 'data.json';
 if (!fs.existsSync(FILENAME))
     fs.writeFileSync(FILENAME, '{}');
 /**
@@ -56,8 +56,63 @@ const data = (() => {
     return result;
 })();
 
+//#region ============================== Helper Functions ==============================
+function getExpectedDaily(name, date) {
+    // Draw a line segment between the previous and next existing times
+    // First find when/what they are
+    let pre = new Date(date);
+    while (!data[name].daily[pre.getHours()] ||
+            isNaN(data[name].daily[pre.getHours()][pre.getMinutes()]))
+        pre.setMinutes(pre.getMinutes() - 1);
+    let preVal = data[name].daily[pre.getHours()][pre.getMinutes()];
+    let post = new Date(date);
+    while (!data[name].daily[post.getHours()] ||
+            isNaN(data[name].daily[post.getHours()][post.getMinutes()]))
+        post.setMinutes(post.getMinutes() + 1);
+    let postVal = data[name].daily[post.getHours()][post.getMinutes()];
+    // Find the expected value for the time
+    // Rise is post value - pre value
+    // Run is post time - pre time
+    // Position is now - pre time
+    // Initial is pre value
+    return (postVal - preVal) / (post - pre) * (date - pre) + preVal;
+}
+
+function getExpectedWeekly(name, date) {
+    let pre = new Date(date);
+    while (!data[name].weekly[pre.getDay()] ||
+            !data[name].weekly[pre.getDay()][pre.getHours()] ||
+            isNaN(data[name].weekly[pre.getDay()][pre.getHours()][pre.getMinutes()]))
+        pre.setMinutes(pre.getMinutes() - 1);
+    let preVal = data[name].weekly[pre.getDay()][pre.getHours()][pre.getMinutes()];
+    let post = new Date(date);
+    while (!data[name].weekly[post.getDay()] ||
+            !data[name].weekly[post.getDay()][post.getHours()] ||
+            isNaN(data[name].weekly[post.getDay()][post.getHours()][post.getMinutes()]))
+        post.setMinutes(post.getMinutes() + 1);
+    let postVal = data[name].weekly[post.getDay()][post.getHours()][post.getMinutes()];
+    return (postVal - preVal) / (post - pre) * (date - pre) + preVal;
+}
+
+function getExpectedMonthly(name, date) {
+    let pre = new Date(date);
+    while (!data[name].monthly[pre.getDate() - 1] ||
+            !data[name].monthly[pre.getDate() - 1][pre.getHours()] ||
+            isNaN(data[name].monthly[pre.getDate() - 1][pre.getHours()][pre.getMinutes()]))
+        pre.setMinutes(pre.getMinutes() - 1);
+    let preVal = data[name].monthly[pre.getDate() - 1][pre.getHours()][pre.getMinutes()];
+    let post = new Date(date);
+    while (!data[name].monthly[post.getDate() - 1] ||
+            !data[name].monthly[post.getDate() - 1][post.getHours()] ||
+            isNaN(data[name].monthly[post.getDate() - 1][post.getHours()][post.getMinutes()]))
+        post.setMinutes(post.getMinutes() + 1);
+    let postVal = data[name].monthly[post.getDate() - 1][post.getHours()][post.getMinutes()];
+    return (postVal - preVal) / (post - pre) * (date - pre) + preVal;
+}
+//#endregion
+
 /**
- * @param {number} name 
+ * @param {number} name String
  * @param {"on"|"off"} status 
  */
 function addStatus(name, status) {
@@ -180,80 +235,62 @@ function addStatus(name, status) {
         if (!data[name].daily[now.getHours()])
             data[name].daily[now.getHours()] = [];
         if (isNaN(data[name].daily[now.getHours()][now.getMinutes()]))
-        {
-            // Draw a line segment between the previous and next existing times
-            // First find when they are
-            let pre = new Date(now);
-            while (!data[name].daily[pre.getHours()] ||
-                    isNaN(data[name].daily[pre.getHours()][pre.getMinutes()]))
-                pre.setMinutes(pre.getMinutes() - 1);
-            let preVal = data[name].daily[pre.getHours()][pre.getMinutes()];
-            let post = new Date(now);
-            while (!data[name].daily[post.getHours()] ||
-                    isNaN(data[name].daily[post.getHours()][post.getMinutes()]))
-                post.setMinutes(post.getMinutes() + 1);
-            let postVal = data[name].daily[post.getHours()][post.getMinutes()];
-            // Find the expected value for the time
-            // Rise is post value - pre value
-            // Run is post time - pre time
-            // Position is now - pre time
-            // Initial is pre value
-            data[name].daily[now.getHours()][now.getMinutes()] = (
-                (postVal - preVal) / (post - pre) * (now - pre) + preVal
-            );
-        }
+            data[name].daily[now.getHours()][now.getMinutes()] =
+                getExpectedDaily(name, now);
         // Verify weekly
         if (!data[name].weekly[now.getDay()])
             data[name].weekly[now.getDay()] = [];
         if (!data[name].weekly[now.getDay()][now.getHours()])
             data[name].weekly[now.getDay()][now.getHours()] = [];
         if (isNaN(data[name].weekly[now.getDay()][now.getHours()][now.getMinutes()]))
-        {
-            let pre = new Date(now);
-            while (!data[name].weekly[pre.getDay()] ||
-                    !data[name].weekly[pre.getDay()][pre.getHours()] ||
-                    isNaN(data[name].weekly[pre.getDay()][pre.getHours()][pre.getMinutes()]))
-                pre.setMinutes(pre.getMinutes() - 1);
-            let preVal = data[name].weekly[pre.getDay()][pre.getHours()][pre.getMinutes()];
-            let post = new Date(now);
-            while (!data[name].weekly[post.getDay()] ||
-                    !data[name].weekly[post.getDay()][post.getHours()] ||
-                    isNaN(data[name].weekly[post.getDay()][post.getHours()][post.getMinutes()]))
-                post.setMinutes(post.getMinutes() + 1);
-            let postVal = data[name].weekly[post.getDay()][post.getHours()][post.getMinutes()];
-            // Add expected value
-            data[name].weekly[now.getDay()][now.getHours()][now.getMinutes()] = (
-                (postVal - preVal) / (post - pre) * (now - pre) + preVal
-            );
-        }
+            data[name].weekly[now.getDay()][now.getHours()][now.getMinutes()] =
+                getExpectedWeekly(name, now);
         // Verify monthly
         if (!data[name].monthly[now.getDate() - 1])
             data[name].monthly[now.getDate() - 1] = [];
         if (!data[name].monthly[now.getDate() - 1][now.getHours()])
             data[name].monthly[now.getDate() - 1][now.getHours()] = [];
         if (isNaN(data[name].monthly[now.getDate() - 1][now.getHours()][now.getMinutes()]))
-        {
-            let pre = new Date(now);
-            while (!data[name].monthly[pre.getDate() - 1] ||
-                    !data[name].monthly[pre.getDate() - 1][pre.getHours()] ||
-                    isNaN(data[name].monthly[pre.getDate() - 1][pre.getHours()][pre.getMinutes()]))
-                pre.setMinutes(pre.getMinutes() - 1);
-            let preVal = data[name].monthly[pre.getDate() - 1][pre.getHours()][pre.getMinutes()];
-            let post = new Date(now);
-            while (!data[name].monthly[post.getDate() - 1] ||
-                    !data[name].monthly[post.getDate() - 1][post.getHours()] ||
-                    isNaN(data[name].monthly[post.getDate() - 1][post.getHours()][post.getMinutes()]))
-                post.setMinutes(post.getMinutes() + 1);
-            let postVal = data[name].monthly[post.getDate() - 1][post.getHours()][post.getMinutes()];
-            // Add expected value
-            data[name].monthly[now.getDate() - 1][now.getHours()][now.getMinutes()] = (
-                (postVal - preVal) / (post - pre) * (now - pre) + preVal
-            );
-        }
+            data[name].monthly[now.getDate() - 1][now.getHours()][now.getMinutes()] = 
+                getExpectedMonthly(name, now);
         // Update the latest status and updated time
         data[name].status = status;
         data[name].lastUpdate = now;
     }
+}
+
+/**
+ * Finds certain values:  
+ * * The last time this name was updated and the status then
+ * * The expected status for the next 6 hours, in 15 minute increments (24 data points)
+ * @param {number} name String
+ * @param {Date} date 
+ */
+function getTimes(name, date) {
+    if (!date)
+        date = new Date();
+    // Find the expected status for the next 6 hours
+    let future = [];
+    for (let i = 0, current = new Date(date);
+            i < 24;
+            i++, current.setMinutes(current.getMinutes() + 15))
+        future.push((
+            getExpectedDaily(name, current) +
+            getExpectedWeekly(name, current) +
+            getExpectedMonthly(name, current)
+        ) / 3);
+    
+    return {
+        lastUpdate: {
+            time: data[name].lastUpdate,
+            status: data[name].status
+        },
+        future
+    };
+}
+
+function removeName(name) {
+    delete data[name];
 }
 
 function commit() {
@@ -262,6 +299,9 @@ function commit() {
     );
 }
 
-addStatus('example', 'on');
-commit();
-console.log(inspect(data, false, 4, true));
+module.exports = {
+    addStatus,
+    getTimes,
+    removeName,
+    commit
+};
