@@ -49,12 +49,12 @@ const data = JSON.parse(fs.readFileSync('data.json'));
 /**
  * @param {string[]} args 
  */
-function current(args) {
+module.exports = function(args) {
     if (args.length < 1)
     {
         console.log("Sets the currently online names. Any names online in data " +
             "but not on the list will be set to offline, and vice versa");
-        console.log('current <...names>');
+        console.log('online <...names>');
         console.log("Names should be separated by spaces");
         return;
     }
@@ -177,5 +177,3 @@ function getNewTime(time, obj) {
         stdev: Math.sqrt((varianceSum + addtime) / obj.count)
     };
 }
-
-module.exports = current;
