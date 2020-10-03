@@ -261,7 +261,7 @@ function addStatus(name, status) {
 /**
  * Finds certain values:  
  * * The last time this name was updated and the status then
- * * The expected status for the next 6 hours, in 15 minute increments (24 data points)
+ * * The expected status for the next 12 hours, in 15 minute increments
  * @param {number} name String
  * @param {Date} date 
  */
@@ -271,14 +271,14 @@ function getTimes(name, date) {
             lastUpdate: null,
             future: null
         };
-        
+
     if (!date)
         date = new Date();
     // Find the expected status for the next 6 hours
     let future = [];
-    for (let i = 0, current = new Date(date);
-            i < 24;
-            i++, current.setMinutes(current.getMinutes() + 15))
+    for (let current = new Date(date);
+            current - date < (1000 * 60 * 60 * 12);
+            current.setMinutes(current.getMinutes() + 15))
         future.push((
             getExpectedDaily(name, current) +
             getExpectedWeekly(name, current) +

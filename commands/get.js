@@ -15,7 +15,7 @@ module.exports = function(args) {
 
     // Display the next 6 hours of times in a line graph
     // Each row will indicate 10% state confidence
-    // Labels can be each hour, on the bottom row
+    // Labels can be every 2 hours, on the bottom row
     let print = (row, min, max) => {
         row.forEach(val => {
             if (val >= min && val < max)
@@ -24,7 +24,7 @@ module.exports = function(args) {
                 process.stdout.write(' ');
         });
     };
-    console.log(`6-hour chart for ${args[0]}`);
+    console.log(`12-hour chart for ${args[0]}`);
     process.stdout.write('1.0|'); print(times.future, 1.0, 1.1); console.log();
     process.stdout.write('   |'); print(times.future, 0.9, 1.0); console.log();
     process.stdout.write('   |'); print(times.future, 0.8, 0.9); console.log();
@@ -38,10 +38,16 @@ module.exports = function(args) {
     process.stdout.write('0.0|'); print(times.future, 0.0, 0.1); console.log();
     // Now print the labels
     process.stdout.write('    ');
+    // Add spaces to pad until an hour mark
+    for (let i = (now.getMinutes() / 15) | 0; i > 0; i--)
+        process.stdout.write(' ');
+    // Then write the hour, followed by enough spaces until the next one
+    for (let hour = now.getHours(); hour < now.getHours() + 12; hour += 2)
+        process.stdout.write(`${hour % 24}${(hour % 24) < 10 ? ' ' : ''}      `);
     console.log();
     console.log(`Last update: ${
         new Intl.DateTimeFormat('en-US', {
-            year: 'numeric', month: 'long', day: 'numeric'
+            year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric'
         }).format(times.lastUpdate.time)
     }`);
 }
