@@ -13,10 +13,13 @@ module.exports = function(args) {
         return;
     }
 
+    // For convenience, only show names who's state changed
+    let currentlyOn = db.getOnStates();
     // Loop through the given names, setting their status to online
     args.forEach(name => {
         db.addStatus(name, 'on');
-        console.log(`Updated ${name} to on state`);
+        if (!currentlyOn.includes(name))
+            console.log(`Updated ${name} to on state`);
     });
 
     // Find which names need to be turned off. Even if they're already off they
@@ -24,7 +27,8 @@ module.exports = function(args) {
     let leftovers = db.getAllNames().filter(name => !args.includes(name));
     leftovers.forEach(name => {
         db.addStatus(name, 'off');
-        console.log(`Updated ${name} to off state`);
+        if (currentlyOn.includes(name))
+            console.log(`Updated ${name} to off state`);
     });
     db.commit();
 }

@@ -279,11 +279,17 @@ function getTimes(name, date) {
     for (let current = new Date(date);
             current - date < (1000 * 60 * 60 * 24);
             current.setMinutes(current.getMinutes() + 15))
-        future.push((
-            getExpectedDaily(name, current) +
-            getExpectedWeekly(name, current) +
-            getExpectedMonthly(name, current)
+    {
+        let d = getExpectedDaily(name, current);
+        let w = getExpectedWeekly(name, current);
+        let m = getExpectedMonthly(name, current);
+        //console.log(`Daily: ${d},\tWeekly: ${w},\tMonthly: ${m}`);
+        future.push((d + w + m
+            //getExpectedDaily(name, current) +
+            //getExpectedWeekly(name, current) +
+            //getExpectedMonthly(name, current)
         ) / 3);
+    }
     
     return {
         lastUpdate: {

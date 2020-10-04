@@ -40,7 +40,7 @@ module.exports = function(args) {
     process.stdout.write('    ');
     // Add spaces to pad until an hour mark
     for (let i = (4 - ((now.getMinutes() / 15) | 0)) % 4; i > 0; i--)
-        process.stdout.write('-');
+        process.stdout.write(' ');
     // Then write the hour, followed by enough spaces until the next one
     for (let hour = now.getHours() + (now.getMinutes() >= 15);
             hour < now.getHours() + 24; hour += 2)
