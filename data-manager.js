@@ -64,7 +64,11 @@ function getExpectedDaily(name, date) {
             isNaN(data[name].daily[pre.getHours()][pre.getMinutes()]))
         pre.setMinutes(pre.getMinutes() - 1);
     let preVal = data[name].daily[pre.getHours()][pre.getMinutes()];
-    let post = new Date(date);
+    // Offset one of the times by 1ms, so we don't accidentally divide by 0
+    // On a scale where 1 minute is the basic "small unit", 1ms won't
+    // make a meaningful difference. Also if the pre time happens to be exact
+    // with the given date, post will be effectively ignored regardless.
+    let post = new Date(date + 1);
     while (!data[name].daily[post.getHours()] ||
             isNaN(data[name].daily[post.getHours()][post.getMinutes()]))
         post.setMinutes(post.getMinutes() + 1);
@@ -84,7 +88,7 @@ function getExpectedWeekly(name, date) {
             isNaN(data[name].weekly[pre.getDay()][pre.getHours()][pre.getMinutes()]))
         pre.setMinutes(pre.getMinutes() - 1);
     let preVal = data[name].weekly[pre.getDay()][pre.getHours()][pre.getMinutes()];
-    let post = new Date(date);
+    let post = new Date(date + 1);
     while (!data[name].weekly[post.getDay()] ||
             !data[name].weekly[post.getDay()][post.getHours()] ||
             isNaN(data[name].weekly[post.getDay()][post.getHours()][post.getMinutes()]))
@@ -100,7 +104,7 @@ function getExpectedMonthly(name, date) {
             isNaN(data[name].monthly[pre.getDate() - 1][pre.getHours()][pre.getMinutes()]))
         pre.setMinutes(pre.getMinutes() - 1);
     let preVal = data[name].monthly[pre.getDate() - 1][pre.getHours()][pre.getMinutes()];
-    let post = new Date(date);
+    let post = new Date(date + 1);
     while (!data[name].monthly[post.getDate() - 1] ||
             !data[name].monthly[post.getDate() - 1][post.getHours()] ||
             isNaN(data[name].monthly[post.getDate() - 1][post.getHours()][post.getMinutes()]))
@@ -280,14 +284,10 @@ function getTimes(name, date) {
             current - date < (1000 * 60 * 60 * 24);
             current.setMinutes(current.getMinutes() + 15))
     {
-        let d = getExpectedDaily(name, current);
-        let w = getExpectedWeekly(name, current);
-        let m = getExpectedMonthly(name, current);
-        //console.log(`Daily: ${d},\tWeekly: ${w},\tMonthly: ${m}`);
-        future.push((d + w + m
-            //getExpectedDaily(name, current) +
-            //getExpectedWeekly(name, current) +
-            //getExpectedMonthly(name, current)
+        future.push((
+            getExpectedDaily(name, current) +
+            getExpectedWeekly(name, current) +
+            getExpectedMonthly(name, current)
         ) / 3);
     }
     
