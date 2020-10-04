@@ -1,6 +1,8 @@
 const fs = require('fs');
 // Convert all args to lower case by default
-const cmd = process.argv.slice(2).map(x => x.toLowerCase());
+const cmd = process.argv.slice(2).map(x =>
+    x.toLowerCase().replace(/^_+|_+$/g, '')
+);
 
 // Get a list of files from commands, those will be the available commands
 const commands = fs.readdirSync('./commands/');
