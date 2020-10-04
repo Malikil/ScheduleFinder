@@ -295,7 +295,10 @@ function getTimes(name, date) {
 }
 
 function removeName(name) {
+    if (!data[name])
+        return false;
     delete data[name];
+    return true;
 }
 
 function getAllNames() {
