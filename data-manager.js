@@ -277,7 +277,7 @@ function getTimes(name, date) {
     // Find the expected status for the next 6 hours
     let future = [];
     for (let current = new Date(date);
-            current - date < (1000 * 60 * 60 * 12);
+            current - date < (1000 * 60 * 60 * 24);
             current.setMinutes(current.getMinutes() + 15))
         future.push((
             getExpectedDaily(name, current) +

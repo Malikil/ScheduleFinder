@@ -24,7 +24,7 @@ module.exports = function(args) {
                 process.stdout.write(' ');
         });
     };
-    console.log(`12-hour chart for ${args[0]}`);
+    console.log(`24-hour chart for ${args[0]}`);
     process.stdout.write('1.0|'); print(times.future, 1.0, 1.1); console.log();
     process.stdout.write('   |'); print(times.future, 0.9, 1.0); console.log();
     process.stdout.write('   |'); print(times.future, 0.8, 0.9); console.log();
@@ -39,10 +39,11 @@ module.exports = function(args) {
     // Now print the labels
     process.stdout.write('    ');
     // Add spaces to pad until an hour mark
-    for (let i = (now.getMinutes() / 15) | 0; i > 0; i--)
-        process.stdout.write(' ');
+    for (let i = (4 - ((now.getMinutes() / 15) | 0)) % 4; i > 0; i--)
+        process.stdout.write('-');
     // Then write the hour, followed by enough spaces until the next one
-    for (let hour = now.getHours(); hour < now.getHours() + 12; hour += 2)
+    for (let hour = now.getHours() + (now.getMinutes() >= 15);
+            hour < now.getHours() + 24; hour += 2)
         process.stdout.write(`${hour % 24}${(hour % 24) < 10 ? ' ' : ''}      `);
     console.log();
     console.log(`Last update: ${
