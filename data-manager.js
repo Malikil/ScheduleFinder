@@ -131,6 +131,8 @@ function addStatus(name, status) {
             weekly: [],
             monthly: []
         };
+        // Make sure the first update has 0 seconds, to make later rotations work properly
+        data[name].firstUpdate.setSeconds(0, 0);
         // Now add status for the current time
         let s = (status === 'on') | 0;
 
@@ -192,8 +194,9 @@ function addStatus(name, status) {
             {
                 let lastValue = data[name].daily[current.getHours()][current.getMinutes()];
                 let oldRotations = Math.floor(
-                    (data[name].lastUpdate - data[name].firstUpdate) / (1000 * 60 * 60 * 24)
+                    (current - data[name].firstUpdate) / (1000 * 60 * 60 * 24)
                 );
+                console.log(oldRotations);
                 // Update the average
                 data[name].daily[current.getHours()][current.getMinutes()] = (
                     (lastValue * oldRotations + newValue) / (oldRotations + 1)
@@ -207,7 +210,7 @@ function addStatus(name, status) {
             {
                 let lastValue = data[name].weekly[current.getDay()][current.getHours()][current.getMinutes()];
                 let oldRotations = Math.floor(
-                    (data[name].lastUpdate - data[name].firstUpdate) / (1000 * 60 * 60 * 24 * 7)
+                    (current - data[name].firstUpdate) / (1000 * 60 * 60 * 24 * 7)
                 );
                 data[name].weekly[current.getDay()][current.getHours()][current.getMinutes()] = (
                     (lastValue * oldRotations + newValue) / (oldRotations + 1)
@@ -221,7 +224,7 @@ function addStatus(name, status) {
             {
                 let lastValue = data[name].monthly[current.getDate() -1][current.getHours()][current.getMinutes()];
                 let oldRotations = Math.floor(
-                    (data[name].lastUpdate - data[name].firstUpdate) / (1000 * 60 * 60 * 24 * 7)
+                    (current - data[name].firstUpdate) / (1000 * 60 * 60 * 24 * 7)
                 );
                 data[name].monthly[current.getDate() - 1][current.getHours()][current.getMinutes()] = (
                     (lastValue * oldRotations + newValue) / (oldRotations + 1)
@@ -307,6 +310,10 @@ function removeName(name) {
     return true;
 }
 
+function getDataByName(name) {
+    return data[name];
+}
+
 function getAllNames() {
     return Object.keys(data);
 }
@@ -325,6 +332,7 @@ module.exports = {
     addStatus,
     getTimes,
     removeName,
+    getDataByName,
     getAllNames,
     getOnStates,
     commit

@@ -50,6 +50,6 @@ module.exports = function(args) {
         new Intl.DateTimeFormat('en-US', {
             year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric'
         }).format(times.lastUpdate.time)
-    }`);
+    } - ${times.lastUpdate.status}`);
 }
 
