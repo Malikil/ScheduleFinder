@@ -196,7 +196,6 @@ function addStatus(name, status) {
                 let oldRotations = Math.floor(
                     (current - data[name].firstUpdate) / (1000 * 60 * 60 * 24)
                 );
-                console.log(oldRotations);
                 // Update the average
                 data[name].daily[current.getHours()][current.getMinutes()] = (
                     (lastValue * oldRotations + newValue) / (oldRotations + 1)
@@ -285,12 +284,57 @@ function getTimes(name, date) {
     let future = [];
     for (let current = new Date(date);
             current - date < (1000 * 60 * 60 * 24);
-            current.setMinutes(current.getMinutes() + 15))
+            current.setMinutes(current.getMinutes() + 1))
     {
+        // If there are times in the 15 minute segment, use those. Otherwise
+        // use the line segment method
+        // Start the the line segment method because it will give the initial
+        // time if it exists
+        let day = {
+            time: getExpectedDaily(name, current),
+            count: 1
+        };
+        let week = {
+            time: getExpectedWeekly(name, current),
+            count: 1
+        };
+        let month = {
+            time: getExpectedMonthly(name, current),
+            count: 1
+        };
+        // Loop over the next 15 minutes and add those to the average if they exist
+        // Add 14 because the loop increments before calculating but after checking
+        // in order to cleanly skip the time already accounted for
+        let marker = new Date(current);
+        marker.setMinutes(marker.getMinutes() + 14);
+        while (current < marker)
+        {
+            current.setMinutes(current.getMinutes() + 1);
+            if (data[name].daily[current.getHours()] &&
+                    !isNaN(data[name].daily[current.getHours()][current.getMinutes()]))
+            {
+                day.time += data[name].daily[current.getHours()][current.getMinutes()];
+                day.count++;
+            }
+            if (data[name].weekly[current.getDay()] &&
+                    data[name].weekly[current.getDay()][current.getHours()] &&
+                    !isNaN(data[name].weekly[current.getDay()][current.getHours()][current.getMinutes()]))
+            {
+                week.time += data[name].weekly[current.getDay()][current.getHours()][current.getMinutes()];
+                week.count++;
+            }
+            if (data[name].monthly[current.getDate() - 1] &&
+                    data[name].monthly[current.getDate() - 1][current.getHours()] &&
+                    !isNaN(data[name].monthly[current.getDate() - 1][current.getHours()][current.getMinutes()]))
+            {
+                month.time += data[name].monthly[current.getDate() - 1][current.getHours()][current.getMinutes()];
+                month.count++;
+            }
+        }
         future.push((
-            getExpectedDaily(name, current) +
-            getExpectedWeekly(name, current) +
-            getExpectedMonthly(name, current)
+            (day.time / day.count) +
+            (week.time / week.count) +
+            (month.time / month.count)
         ) / 3);
     }
     
