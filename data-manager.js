@@ -1,5 +1,6 @@
 const fs = require('fs');
 
+//#region ============================== Startup ==============================
 // Make sure the data file exists
 const FILENAME = 'data.json';
 if (!fs.existsSync(FILENAME))
@@ -54,7 +55,7 @@ const data = (() => {
 
     return result;
 })();
-
+//#endregion
 //#region ============================== Helper Functions ==============================
 function getExpectedDaily(name, date) {
     // Draw a line segment between the previous and next existing times
@@ -354,6 +355,14 @@ function removeName(name) {
     return true;
 }
 
+function rename(from, to) {
+    if (!data[from])
+        return false;
+    data[to] = data[from];
+    delete data[from];
+    return true;
+}
+
 function getDataByName(name) {
     return data[name];
 }
@@ -376,6 +385,7 @@ module.exports = {
     addStatus,
     getTimes,
     removeName,
+    rename,
     getDataByName,
     getAllNames,
     getOnStates,
